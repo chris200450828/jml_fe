@@ -1,0 +1,42 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+
+# 指定 ChromeDriver 的絕對路徑
+chrome_driver_path = "C:/Users/user/OneDrive/桌面/大學/112學期-大二下/網路程式設計/chromedriver-win64/chromedriver.exe"  # 请将此路径替换为你的 ChromeDriver 绝对路径
+service = Service(chrome_driver_path)
+
+# 初始化 WebDriver
+driver = webdriver.Chrome(service=service)
+driver.implicitly_wait(10)
+driver.get("http://stats.nba.com/players/traditional/?sort=PTS&dir=-1")
+
+pages_remaining = True
+page_num = 1
+
+while pages_remaining:
+    soup = BeautifulSoup(driver.page_source, "lxml")
+    table = soup.select_one("#__next > div.Layout_base__6IeUC.Layout_justNav__2H4H0.Layout_withSubNav__ByKRF > div.Layout_mainContent__jXliI > div.MaxWidthContainer_mwc__ID5AG > section.Block_block__62M07.nba-stats-content-block > div > div.Crom_base__f0niE > div.Crom_container__C45Ti.crom-container > table")
+    if table:
+        df = pd.read_html(str(table))[0]
+        df.to_csv("ALL_players_stats" + str(page_num) + ".csv", index=False)
+        print("儲存頁面:", page_num)
+    else:
+        print("未找到表格")
+    
+    try:
+        next_link = driver.find_element(By.XPATH, '//*[@id="__next"]/div[2]/div[2]/div[3]/section[2]/div/div[2]/div[2]/div[1]/div[5]/button[2]')
+        next_link.click()
+        time.sleep(5)
+        page_num += 1
+        if page_num > 11:
+            pages_remaining = False
+    except Exception as e:
+        print("錯誤:", e)
+        pages_remaining = False
+
+driver.quit()
+
