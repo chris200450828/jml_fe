@@ -5,7 +5,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def scroll_to_lowest(driver, method, locate, start_count=0):
+def scroll_to_lowest(driver, method, locate, start_count=0, mouse_wait_time=0.1, return_number=None):
     wait = WebDriverWait(driver, 10)
     count_down = start_count
 
@@ -24,12 +24,16 @@ def scroll_to_lowest(driver, method, locate, start_count=0):
             actions = ActionChains(driver)
             actions.move_to_element(elements[count_down]).perform()
             count_down += 1
-            time.sleep(0.1)
+            time.sleep(mouse_wait_time)
             driver.execute_script("window.scrollBy(0, 1000);")
         except IndexError:
-            print('WE ARRIVED')
             break
         except NameError as unknown_exception_unsolved_name:
             print('might end, or just bugged')
             print(unknown_exception_unsolved_name)
             break
+
+    if return_number is True:
+        return count_down
+
+
