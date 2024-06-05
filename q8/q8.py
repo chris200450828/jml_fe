@@ -2,11 +2,11 @@ import time
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import pandas as pd
+import scroller as sr
 
 options = webdriver.ChromeOptions()
 options.add_argument('--no-sandbox')
@@ -28,23 +28,9 @@ driver.switch_to.window(driver.window_handles[-1])
 
 hotel_item = wait.until(EC.presence_of_all_elements_located(
     (By.CSS_SELECTOR, '[data-selenium="hotel-item"]')))
-count_down = 1
-while True:
-    try:
-        actions = ActionChains(driver)
-        actions.move_to_element(hotel_item[count_down]).perform()
-        count_down += 1
-        time.sleep(0.1)
-        hotel_item = wait.until(EC.presence_of_all_elements_located(
-            (By.CSS_SELECTOR, '[data-selenium="hotel-item"]')))
-        driver.execute_script("window.scrollBy(0, 1000);")
-    except IndexError as out_range:
-        print('WE ARRIVED')
-        break
-    except NameError as unknown_exception_unsolved_name:
-        print('might end,or just bugged')
-        print(unknown_exception_unsolved_name)
-        break
+count_down = 0
+
+sr.scroll_to_lowest(driver, 'CSS', '[data-selenium="hotel-item"]')
 
 hotel_name_list, hotel_price_list = [], []
 
