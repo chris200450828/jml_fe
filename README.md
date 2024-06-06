@@ -45,9 +45,6 @@ To use the `scroller.py` script, follow these steps:
 
 ---
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
 ## Contributing
 If you would like to contribute to this project, please fork the repository and submit a pull request. We welcome all contributions!
 
