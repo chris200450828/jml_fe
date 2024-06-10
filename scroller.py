@@ -16,24 +16,28 @@ def scroll_to_lowest(driver, method, locate, start_count=0, mouse_wait_time=0.1,
     elif method == By.XPATH or method == By.CSS_SELECTOR:
         pass
     else:
-        raise ValueError('Method must be XPATH,CSS or selenium.By object')
+        raise ValueError('Method must be XPATH, CSS, or selenium.By object')
 
     while True:
         try:
             elements = wait.until(EC.presence_of_all_elements_located((method, locate)))
-            actions = ActionChains(driver)
-            actions.move_to_element(elements[count_down]).perform()
-            count_down += 1
-            time.sleep(mouse_wait_time)
-            driver.execute_script("window.scrollBy(0, 1000);")
+            element = elements[count_down]
+
+            # Check if the element is interactable
+            if element.is_displayed() and element.size['height'] > 0 and element.size['width'] > 0:
+                actions = ActionChains(driver)
+                actions.move_to_element(element).perform()
+                count_down += 1
+                time.sleep(mouse_wait_time)
+                driver.execute_script("window.scrollBy(0, 1000);")
+            else:
+                print(f"Element {count_down} is not interactable. Skipping...")
+                count_down += 1
         except IndexError:
             break
-        except NameError as unknown_exception_unsolved_name:
-            print('might end, or just bugged')
-            print(unknown_exception_unsolved_name)
+        except Exception as e:
+            print('An error occurred:', e)
             break
 
-    if return_number is True:
+    if return_number:
         return count_down
-
-
