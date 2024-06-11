@@ -5,11 +5,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import trange
-import scroller as sr
+import old_sr as sr
 import pandas as pd
 
 options = webdriver.ChromeOptions()
-options.add_argument('--no-sandbox')
+# options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_experimental_option("detach", True)
 driver = webdriver.Chrome(options=options)
