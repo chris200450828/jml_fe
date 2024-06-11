@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import pandas as pd
-import scroller as sr
+import old_sr as sr
 
 options = webdriver.ChromeOptions()
 options.add_argument('--no-sandbox')
@@ -26,12 +26,10 @@ search_button = wait.until(EC.presence_of_element_located(
 search_button.click()
 driver.switch_to.window(driver.window_handles[-1])
 
-hotel_item = wait.until(EC.presence_of_all_elements_located(
-    (By.CSS_SELECTOR, '[data-selenium="hotel-item"]')))
-count_down = 0
-
 sr.scroll_to_lowest(driver, 'CSS', '[data-selenium="hotel-item"]')
 
+hotel_item = wait.until(EC.presence_of_all_elements_located(
+    (By.CSS_SELECTOR, '[data-selenium="hotel-item"]')))
 hotel_name_list, hotel_price_list = [], []
 
 for hotel in hotel_item:
