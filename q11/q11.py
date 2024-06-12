@@ -84,4 +84,4 @@ for i in range(0, len(df), 2):
 cleaned_df = pd.DataFrame(cleaned_data)
 
 # 將 DataFrame 保存為 CSV 文件
-cleaned_df.to_csv("tablee.csv", index=False, encoding='utf-8-sig')
+cleaned_df.to_csv("Taipei_movies.csv", index=False, encoding='utf-8-sig')
