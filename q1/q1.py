@@ -1,78 +1,104 @@
-import requests
-from bs4 import BeautifulSoup
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service
 
+# ChromeDriver 可執行文件的路徑
+chrome_driver_path = "C:/Users/user/OneDrive/桌面/大學/112學期-大二下/網路程式設計/chromedriver-win64/chromedriver.exe"
 
-class YahooFinanceScraper:
-    def __init__(self, stock_code):
-        self.base_url = 'https://tw.stock.yahoo.com/quote/'
-        self.stock_code = stock_code
-        self.stock_data = {}
+# 滾動到頁面的最底部
+def scroll_to_lowest(driver):
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
 
-    def fetch_page(self):
-        url = f"{self.base_url}{self.stock_code}.TW"
-        response = requests.get(url)
-        response.raise_for_status()  # Check that the request was successful
-        return response.text
+# 指定主題的文章
+def print_topic_articles(driver, topic_name, wait):
+    topic_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//a[@class="kNtDAe" and contains(text(), "{topic_name}")]')))
+    driver.execute_script("arguments[0].click();", topic_button)
 
-    def parse_page(self, html):
-        return BeautifulSoup(html, 'html.parser')
+    time.sleep(2)
+    scroll_to_lowest(driver)
 
-    def get_name(self, soup):
-        name_element = soup.find('h1', class_='C($c-link-text) Fw(b) Fz(24px) Mend(8px)')
-        self.stock_data['名稱'] = name_element.text if name_element else 'N/A'
+    inside_topic_articles = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//a[@class="gPFEn" or contains(@class, "JtKRv")]')))
+    print(topic_name)
+    for article in inside_topic_articles:
+        print(article.text)
 
-    def get_red_elements(self, soup):
-        red_elements = soup.find_all('span', class_='Fw(600) Fz(16px)--mobile Fz(14px) D(f) Ai(c) C($c-trend-up)')
-        if red_elements:
-            self.stock_data['成交'] = red_elements[0].text if len(red_elements) > 0 else 'N/A'
-            self.stock_data['開盤'] = red_elements[1].text if len(red_elements) > 1 else 'N/A'
-            self.stock_data['最高'] = red_elements[2].text if len(red_elements) > 2 else 'N/A'
-            self.stock_data['最低'] = red_elements[3].text if len(red_elements) > 3 else 'N/A'
+    driver.get("https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant")
 
-    def get_black_elements(self, soup):
-        black_elements = soup.find_all('span', class_="Fw(600) Fz(16px)--mobile Fz(14px) D(f) Ai(c)")
-        if black_elements:
-            self.stock_data['均價'] = black_elements[0].text if len(black_elements) > 0 else 'N/A'
-            self.stock_data['昨收'] = black_elements[1].text if len(black_elements) > 1 else 'N/A'
+# 印出焦點新聞
+def print_focus_news(driver, wait):
+    print("焦點提要")
+    focus = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//a[@class="gPFEn" or contains(@class, "JtKRv iTin5e")]')))
+    print("焦點新聞")
+    for i in focus:
+        print(i.text)
 
-    def get_sec_black_elements(self, soup):
-        sec_black_elements = soup.find_all('span', class_="Fw(600) Fz(16px)--mobile Fz(14px)")
-        if sec_black_elements:
-            self.stock_data['成交值(億)'] = sec_black_elements[0].text if len(sec_black_elements) > 0 else 'N/A'
-            self.stock_data['總量'] = sec_black_elements[1].text if len(sec_black_elements) > 1 else 'N/A'
-            self.stock_data['昨量'] = sec_black_elements[2].text if len(sec_black_elements) > 2 else 'N/A'
-            self.stock_data['振幅'] = sec_black_elements[3].text if len(sec_black_elements) > 3 else 'N/A'
+    print("-------------------")
+    print("地方新聞")
+    local = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//a[@class="JtKRv"]')))
+    for i in range(3):
+        print(local[i].text)
 
-    def get_price_detail_items(self, soup):
-        price_detail_items = soup.find_all('li', class_='price-detail-item')
-        for item in price_detail_items:
-            label_span = item.find('span', class_='C(#232a31) Fz(16px)--mobile Fz(14px)')
-            value_span = item.find('span', class_='Fw(600) Fz(16px)--mobile Fz(14px)')
-            if label_span and value_span:
-                label_text = label_span.text.strip()
-                value_text = value_span.text.strip()
-                if label_text == '漲跌幅':
-                    self.stock_data['漲跌幅'] = value_text
-                elif label_text == '漲跌':
-                    self.stock_data['漲跌'] = value_text
+    driver.get("https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant")
+#印出地方新聞
+    print("-------------------")
+    print("焦點新聞")
+    focus_button = wait.until(EC.presence_of_element_located((By.XPATH, '//a[@class="aqvwYd"]')))
+    driver.execute_script("arguments[0].click();", focus_button)
 
-    def get_data(self,):
-        self.stock_data['代碼'] = f'{self.stock_code}.TW'
-        html = self.fetch_page()
-        soup = self.parse_page(html)
-        self.get_name(soup)
-        self.get_red_elements(soup)
-        self.get_black_elements(soup)
-        self.get_sec_black_elements(soup)
-        self.get_price_detail_items(soup)
-        return self.stock_data
+    time.sleep(2)
+    scroll_to_lowest(driver)
 
-    def get_vol(self):
-        self.vol = {}
-        left_vol = soup.find('div', class_="D(f) Jc(sb) Ai(c) Py(6px) Pstart(0px) Pend(16px)")
+    inside_focus = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//a[@class="gPFEn"]')))
+    for i in inside_focus:
+        print(i.text)
 
+    driver.get("https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant")
 
-# Example usage
-scraper = YahooFinanceScraper('2609')
-data = scraper.get_data()
-print(data)
+# 印出您所在位置的當地天氣
+def print_weather(driver, wait):
+    weather_button = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@class="HDbYSe"]')))
+    driver.execute_script("arguments[0].click();", weather_button)
+
+    weather_div = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="PCFVm"]')))
+    print("您所在位置的當地天氣")
+    for weather in weather_div:
+        print(weather.get_attribute('aria-label'))
+
+# 設置 Chrome 選項
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_experimental_option("detach", True)
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+# 設置 ChromeDriver 服務
+service = Service(chrome_driver_path)
+driver = webdriver.Chrome(service=service, options=chrome_options)
+wait = WebDriverWait(driver, 10)
+
+# 打開目標網頁
+driver.get("https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant")
+
+# 印出焦點新聞
+print_focus_news(driver, wait)
+print("-------------------")
+print("您的主題")
+
+#印出您的主題的全部標題
+topics = ["台灣", "國際", "商業", "科學與科技", "娛樂", "體育"]
+for topic in topics:
+    print_topic_articles(driver, topic, wait)
+    print("-------------------")
+
+# 印出天氣資訊
+print_weather(driver, wait)
