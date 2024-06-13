@@ -56,13 +56,14 @@ result = pd.concat([player_df, data_df], axis=1)
 result.to_csv('all_play.csv', index=False, encoding='utf-8-sig')
 
 # 提取前三名球員的 URL
-first = player_object[1]
-second = player_object[2]
-third = player_object[3]
+first = player_object[0]
+second = player_object[1]
+third = player_object[2]
 
 first_url = first.get_attribute('href')
 second_url = second.get_attribute('href')
 third_url = third.get_attribute('href')
+
 
 def get_data(driver, element):  # 防止變量名重複
     """
@@ -87,6 +88,7 @@ def get_data(driver, element):  # 防止變量名重複
     salary = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="player-bio-text"]/span[5]/span')))
 
     return name.text, number.text, salary.text
+
 
 # 獲取前三名球員的數據
 first_name, first_number, first_salary = get_data(driver, first_url)
